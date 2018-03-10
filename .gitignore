@@ -1,0 +1,8 @@
+# cache file
+__pycache__
+
+# macOS
+.DS_Store
+
+.idea
+fruit
