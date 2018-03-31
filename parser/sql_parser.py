@@ -7,6 +7,8 @@ class SqlParser:
 
     def build_parser(self):
         self.parser = Lark('''
+        sql: ddl
+        ddl: (create|alter)
         create: CREATE TABLE [IF NOT EXIST] ID \
                 "(" create_definition ("," create_definition)* ")"
         create_definition: ID column_definition
@@ -45,13 +47,48 @@ class SqlParser:
                     | WITH PARSER ID
         index_type: USING (BTREE | HASH)
         index_col_name: ID ["(" NUMBER ")"] [ASC | DESC]
+        alter: ALTER TABLE ID [alter_specification ("," alter_specification)*]
+        alter_specification: ADD [COLUMN] ID column_definition [FIRST | AFTER ID]
+                           | ADD [COLUMN] "(" ID column_definition ("," column_definition)* ")"
+                           | ADD (INDEX|KEY) [ID] \
+                                 [index_type] "(" index_col_name ("," index_col_name)* ")" \
+                                 [index_option ("," index_option)*]
+                           | ADD PRIMARY KEY \
+                                 [index_type] "(" index_col_name ("," index_col_name)* ")" \
+                                 [index_option ("," index_option)*]
+                           | ADD UNIQUE [INDEX|KEY] [ID] \
+                                 [index_type] "(" index_col_name ("," index_col_name)* ")" \
+                                 [index_option ("," index_option)*]
+                           | ADD FOREIGN KEY [ID] "(" index_col_name ("," index_col_name)* ")" \
+                                 reference_definition
+                           | ALTER [COLUMN] ID (SET DEFAULT STRING | DROP DEFAULT)
+                           | CHANGE [COLUMN] ID ID column_definition [FIRST|AFTER ID]
+                           | [DEFAULT] CHARACTER SET ["="] ID [COLLATE ["="] ID]
+                           | CONVERT TO CHARACTER SET ID [COLLATE ID]
+                           | DROP [COLUMN] ID
+                           | DROP (INDEX|KEY) ID
+                           | DROP PRIMARY KEY
+                           | DROP FOREIGN KEY ID
+                           | LOCK ["="] (DEFAULT|NONE|SHARED|EXCLUSIVE)
+                           | MODIFY [COLUMN] ID column_definition [FIRST | AFTER ID]
+                           | ORDER BY ID ("," ID)*
+                           | RENAME (INDEX|KEY) ID TO ID
+                           | RENAME [TO|AS] ID
         ACTION: "action"i
+        ADD: "add"i
+        AFTER: "after"i
+        ALTER: "alter"i
+        AS: "as"i
         ASC: "asc"i
         AUTO_INCREMENT: "auto_increment"i
         BTREE: "btree"i
+        BY: "by"i
         CASCADE: "cascade"i
+        CHANGE: "change"i
         CHARACTER: "character"i
-        COLLATE: "collate"
+        COLLATE: "collate"i
+        COLUMN: "column"i
+        CONVERT: "convert"i
         CREATE: "create"i
         DATE: "date"i
         DATETIME: "datetime"i
@@ -60,8 +97,11 @@ class SqlParser:
         DELETE: "delete"i
         DESC: "desc"i
         DOUBLE: "double"i
+        DROP: "drop"i
         ENUM: "enum"i
+        EXCLUSIVE: "exclusive"i
         EXIST: "exist"i
+        FIRST: "first"i
         FOREIGN: "foreign"i
         HASH: "hash"i
         ID: /[a-zA-Z_][a-zA-Z0-9_]*/
@@ -71,19 +111,26 @@ class SqlParser:
         JSON: "json"i
         KEY: "key"i
         KEY_BLOCK_SIZE: "key_block_size"i
+        LOCK: "lock"i
+        MODIFY: "modify"i
         NO: "no"i
+        NONE: "none"i
         NOT: "not"i
         NULL: "null"i
         ON: "on"i
+        ORDER: "order"i
         PARSER: "parser"i
         PRIMARY: "primary"i
         REFERENCES: "references"i
+        RENAME: "rename"i
         RESTRICT: "restrict"i
         SET: "set"i
+        SHARED: "shared"i
         TABLE: "table"i
         TEXT: "text"i
         TIME: "time"i
         TIMESTAMP: "timestamp"i
+        TO: "to"i
         UNIQUE: "unique"i
         UPDATE: "update"i
         USING: "using"i
@@ -92,7 +139,7 @@ class SqlParser:
         %import common.WS
         %import common.ESCAPED_STRING -> STRING
         %ignore WS
-         ''', start='create')
+         ''', start='sql')
 
         return self.parser
 
@@ -110,4 +157,8 @@ if __name__ == '__main__':
       PRIMARY KEY (num)
     )
     ''')
+    b = sql_parser.parse('''
+    ALTER TABLE provider ADD PRIMARY KEY(person,place,thing)
+    ''')
     print(a)
+    print(b)
