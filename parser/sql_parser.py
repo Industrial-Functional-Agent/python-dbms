@@ -8,8 +8,8 @@ class SqlParser:
     def build_parser(self):
         self.parser = Lark('''
         sql: ddl
-        ddl: (create|alter)
-        create: CREATE TABLE [IF NOT EXIST] ID \
+        ddl: (create|alter|drop)
+        create: CREATE TABLE [IF NOT EXISTS] ID \
                 "(" create_definition ("," create_definition)* ")"
         create_definition: ID column_definition
                          | PRIMARY KEY [index_type] \
@@ -74,6 +74,7 @@ class SqlParser:
                            | ORDER BY ID ("," ID)*
                            | RENAME (INDEX|KEY) ID TO ID
                            | RENAME [TO|AS] ID
+        drop: DROP TABLE [IF EXISTS] ID ("," ID)* [RESTRICT | CASCADE]
         ACTION: "action"i
         ADD: "add"i
         AFTER: "after"i
@@ -100,7 +101,7 @@ class SqlParser:
         DROP: "drop"i
         ENUM: "enum"i
         EXCLUSIVE: "exclusive"i
-        EXIST: "exist"i
+        EXISTS: "exists"i
         FIRST: "first"i
         FOREIGN: "foreign"i
         HASH: "hash"i
