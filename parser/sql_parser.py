@@ -8,7 +8,7 @@ class SqlParser:
     def build_parser(self):
         self.parser = Lark('''
         sql: ddl
-        ddl: (create_table | alter_table | drop_table | create_index)
+        ddl: (create_table | create_index | alter_table | drop_table | drop_index)
         create_table: CREATE TABLE [IF NOT EXISTS] ID \
                 "(" create_definition ("," create_definition)* ")"
         create_definition: ID column_definition
@@ -78,6 +78,7 @@ class SqlParser:
                            | RENAME (INDEX|KEY) ID TO ID
                            | RENAME [TO | AS] ID
         drop_table: DROP TABLE [IF EXISTS] ID ("," ID)* [RESTRICT | CASCADE]
+        drop_index: DROP INDEX ID ON ID [lock_option ("," lock_option)*]
         ACTION: "action"i
         ADD: "add"i
         AFTER: "after"i
