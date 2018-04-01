@@ -8,8 +8,8 @@ class SqlParser:
     def build_parser(self):
         self.parser = Lark('''
         sql: ddl
-        ddl: (create|alter|drop)
-        create: CREATE TABLE [IF NOT EXISTS] ID \
+        ddl: (create_table | alter_table | drop_table | create_index)
+        create_table: CREATE TABLE [IF NOT EXISTS] ID \
                 "(" create_definition ("," create_definition)* ")"
         create_definition: ID column_definition
                          | PRIMARY KEY [index_type] \
@@ -47,34 +47,37 @@ class SqlParser:
                     | WITH PARSER ID
         index_type: USING (BTREE | HASH)
         index_col_name: ID ["(" NUMBER ")"] [ASC | DESC]
-        alter: ALTER TABLE ID [alter_specification ("," alter_specification)*]
+        create_index: CREATE [UNIQUE] INDEX ID [index_type] ON ID "(" index_col_name ("," index_col_name)* ")" \
+                      [index_option] [lock_option ("," lock_option)*]
+        lock_option: LOCK ["="] (DEFAULT | NONE | SHARED | EXCLUSIVE)
+        alter_table: ALTER TABLE ID [alter_specification ("," alter_specification)*]
         alter_specification: ADD [COLUMN] ID column_definition [FIRST | AFTER ID]
                            | ADD [COLUMN] "(" ID column_definition ("," column_definition)* ")"
-                           | ADD (INDEX|KEY) [ID] \
+                           | ADD (INDEX | KEY) [ID] \
                                  [index_type] "(" index_col_name ("," index_col_name)* ")" \
                                  [index_option ("," index_option)*]
                            | ADD PRIMARY KEY \
                                  [index_type] "(" index_col_name ("," index_col_name)* ")" \
                                  [index_option ("," index_option)*]
-                           | ADD UNIQUE [INDEX|KEY] [ID] \
+                           | ADD UNIQUE [INDEX | KEY] [ID] \
                                  [index_type] "(" index_col_name ("," index_col_name)* ")" \
                                  [index_option ("," index_option)*]
                            | ADD FOREIGN KEY [ID] "(" index_col_name ("," index_col_name)* ")" \
                                  reference_definition
                            | ALTER [COLUMN] ID (SET DEFAULT STRING | DROP DEFAULT)
-                           | CHANGE [COLUMN] ID ID column_definition [FIRST|AFTER ID]
+                           | CHANGE [COLUMN] ID ID column_definition [FIRST | AFTER ID]
                            | [DEFAULT] CHARACTER SET ["="] ID [COLLATE ["="] ID]
                            | CONVERT TO CHARACTER SET ID [COLLATE ID]
                            | DROP [COLUMN] ID
                            | DROP (INDEX|KEY) ID
                            | DROP PRIMARY KEY
                            | DROP FOREIGN KEY ID
-                           | LOCK ["="] (DEFAULT|NONE|SHARED|EXCLUSIVE)
+                           | LOCK ["="] (DEFAULT | NONE | SHARED | EXCLUSIVE)
                            | MODIFY [COLUMN] ID column_definition [FIRST | AFTER ID]
                            | ORDER BY ID ("," ID)*
                            | RENAME (INDEX|KEY) ID TO ID
-                           | RENAME [TO|AS] ID
-        drop: DROP TABLE [IF EXISTS] ID ("," ID)* [RESTRICT | CASCADE]
+                           | RENAME [TO | AS] ID
+        drop_table: DROP TABLE [IF EXISTS] ID ("," ID)* [RESTRICT | CASCADE]
         ACTION: "action"i
         ADD: "add"i
         AFTER: "after"i
