@@ -51,7 +51,7 @@ class SqlParser:
         BTREE: "btree"i
         CASCADE: "cascade"i
         CHARACTER: "character"i
-        COLLATE: "collate"
+        COLLATE: "collate"i
         CREATE: "create"i
         DATE: "date"i
         DATETIME: "datetime"i
