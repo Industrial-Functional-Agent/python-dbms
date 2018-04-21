@@ -1,5 +1,7 @@
 from lark import Lark
 
+from utils import parse_tree
+
 
 class SqlParser:
     def __init__(self):
@@ -111,3 +113,5 @@ if __name__ == '__main__':
     )
     ''')
     print(a)
+    ast = parse_tree(a)
+    print(ast)
