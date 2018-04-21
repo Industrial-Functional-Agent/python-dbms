@@ -31,8 +31,8 @@ class SqlParser:
                  | TIMESTAMP ["(" NUMBER ")"]
                  | DATETIME ["(" NUMBER ")"]
                  | TEXT ["(" NUMBER ")"] [CHARACTER SET ID] [COLLATE ID]
-                 | ENUM "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
-                 | SET "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
+                 | ENUM "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
+                 | SET "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
                  | JSON
         reference_definition: REFERENCES ID (index_col_name ("," index_col_name)*) \
                               [ON DELETE reference_option] \
@@ -140,9 +140,12 @@ class SqlParser:
         UPDATE: "update"i
         USING: "using"i
         WITH: "with"i
+        DOUBLE_QUOTED_STRING  : /"[^"]*"/
+        SINGLE_QUOTED_STRING  : /'[^']*'/
+        STRING: SINGLE_QUOTED_STRING | DOUBLE_QUOTED_STRING | ESCAPED_STRING
         %import common.NUMBER
         %import common.WS
-        %import common.ESCAPED_STRING -> STRING
+        %import common.ESCAPED_STRING -> ESCAPED_STRING
         %ignore WS
          ''', start='sql')
 
@@ -165,5 +168,10 @@ if __name__ == '__main__':
     b = sql_parser.parse('''
     ALTER TABLE provider ADD PRIMARY KEY(person,place,thing)
     ''')
+    c = sql_parser.parse('''
+    create table aa(
+    col1 enum("a", ' b h id', 'c')
+)''')
     print(a)
     print(b)
+    print(c)
