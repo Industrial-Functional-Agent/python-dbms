@@ -58,6 +58,13 @@ class CreateDefinition:
         else:
             raise SyntaxError("Not proper token: {}".format(tree.children[0]))
 
+    @classmethod
+    def parse_index_type(cls, tree):
+        return tree.children[1].value  # btree | hash
+
+    @classmethod
+    def parse_index_col_name(cls, tree):
+        return tree.children[0].value
 
 class Column(CreateDefinition):
     def __init__(self, col_name, column_definition):
@@ -157,14 +164,6 @@ class PrimaryKey(CreateDefinition):
     def __init__(self, index_type, index_col_names):
         self.index_type = index_type
         self.index_col_names = index_col_names
-
-    @staticmethod
-    def parse_index_type(tree):
-        return tree.children[1].value  # btree | hash
-
-    @staticmethod
-    def parse_index_col_name(tree):
-        return tree.children[0].value
 
 
 class Unique(CreateDefinition):
