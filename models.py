@@ -186,3 +186,18 @@ class ForeignKey(CreateDefinition):
         self.index_name = index_name
         self.index_col_names = index_col_names
         self.reference_definition = reference_definition
+
+
+class ReferenceDefinition:
+    """
+    reference_definition:
+        REFERENCES tbl_name (index_col_name,...)
+        [ON DELETE reference_option]
+        [ON UPDATE reference_option]
+    """
+    def __init__(self, tbl_name, index_col_names,
+                 on_delete_reference_option, on_update_reference_option):
+        self.tbl_name = tbl_name
+        self.index_col_names = index_col_names
+        self.on_delete_reference_option = on_delete_reference_option
+        self.on_update_reference_option = on_update_reference_option
