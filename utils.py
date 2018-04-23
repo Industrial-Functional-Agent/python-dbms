@@ -7,5 +7,5 @@ def parse_tree(tree):
         if t.data == "ddl":
             t = t.children[0]
             if t.data == "create_table":
-                return CreateTable.parse_create(t)
+                return CreateTable.parse_create_table(t)
     raise RuntimeWarning("invalid tree {}".format(tree))
