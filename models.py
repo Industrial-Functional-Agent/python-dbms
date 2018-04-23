@@ -84,7 +84,7 @@ class ColumnDefinition:
 
     @staticmethod
     def parse_allow_null(children):
-        return len([token for token in children if token.type == "NOT"]) > 0
+        return len([token for token in children if token.type == "NOT"]) == 0
 
     @staticmethod
     def parse_default(children):
