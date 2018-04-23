@@ -34,7 +34,7 @@ class SqlParser:
                  | ENUM "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
                  | SET "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
                  | JSON
-        reference_definition: REFERENCES ID (index_col_name ("," index_col_name)*) \
+        reference_definition: REFERENCES ID "(" index_col_name ("," index_col_name)* ")" \
                               [ON DELETE reference_option] \
                               [ON UPDATE reference_option]
         reference_option: RESTRICT
