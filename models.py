@@ -54,7 +54,15 @@ class CreateDefinition:
                                if type(c) is Tree and c.data == 'index_col_name']
             return Unique(index_name, index_type, index_col_names)
         elif tree.children[0].type == "FOREIGN":
-            pass
+            index_name = next((c.value for c in tree.children
+                               if type(c) is Token and c.type == 'ID'),
+                              None)
+            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+                               if type(c) is Tree and c.data == 'index_col_name']
+            reference_definition = next(c for c in tree.children
+                                        if type(c) is Tree and c.data == "reference_definition")
+            return ForeignKey(index_name, index_col_names,
+                              CreateDefinition.parse_reference_definition(reference_definition))
         else:
             raise SyntaxError("Not proper token: {}".format(tree.children[0]))
 
@@ -65,6 +73,24 @@ class CreateDefinition:
     @classmethod
     def parse_index_col_name(cls, tree):
         return tree.children[0].value
+
+    @classmethod
+    def parse_reference_definition(cls, tree):
+        tbl_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
+        index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+                           if type(c) is Tree and c.data == 'index_col_name']
+        idx_delete = next((idx for idx, c in enumerate(tree.children)
+                           if type(c) is Token and c.type == 'DELETE'),
+                          None)
+        idx_update = next((idx for idx, c in enumerate(tree.children)
+                           if type(c) is Token and c.type == 'UPDATE'),
+                          None)
+        # TODO complete on_delete_reference_option / on_update_reference_option
+        on_delete_reference_option = None
+        on_update_reference_option = None
+        return ReferenceDefinition(tbl_name, index_col_names,
+                                   on_delete_reference_option, on_update_reference_option)
+
 
 class Column(CreateDefinition):
     def __init__(self, col_name, column_definition):
