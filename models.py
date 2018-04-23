@@ -32,20 +32,27 @@ class CreateDefinition:
 
     @staticmethod
     def parse_create_definition(tree):
-        if tree.children[0].type == "ID":
-            col_name = tree.children[0].value
-            column_definition = ColumnDefinition.parse_column_definition(tree.children[1])
+        if tree.children[0].type == 'ID':
+            col_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
+            column_definition = next(ColumnDefinition.parse_column_definition(c)
+                                     for c in tree.children
+                                     if type(c) is Tree and c.data == 'column_definition')
             return Column(col_name, column_definition)
-        elif tree.children[0].type == "PRIMARY":
-            if tree.children[2].data == "index_type":
-                index_type = PrimaryKey.parse_index_type(tree.children[2])
-                index_col_names = [PrimaryKey.parse_index_col_name(t) for t in tree.children[3:]]
-            else:
-                index_type = None
-                index_col_names = [PrimaryKey.parse_index_col_name(t) for t in tree.children[2:]]
+        elif tree.children[0].type == 'PRIMARY':
+            index_type = next((CreateDefinition.parse_index_type(c) for c in tree.children
+                              if type(c) is Tree and c.data == 'index_type'),
+                              'btree')
+            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+                               if type(c) is Tree and c.data == 'index_col_name']
             return PrimaryKey(index_type, index_col_names)
-        elif tree.children[0].type == "UNIQUE":
-            pass
+        elif tree.children[0].type == 'UNIQUE':
+            index_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
+            index_type = next((CreateDefinition.parse_index_type(c) for c in tree.children
+                              if type(c) is Tree and c.data == 'index_type'),
+                              'btree')
+            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+                               if type(c) is Tree and c.data == 'index_col_name']
+            return Unique(index_name, index_type, index_col_names)
         elif tree.children[0].type == "FOREIGN":
             pass
         else:
