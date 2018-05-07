@@ -64,7 +64,7 @@ class CreateDefinition:
             return ForeignKey(index_name, index_col_names,
                               CreateDefinition.parse_reference_definition(reference_definition))
         else:
-            raise SyntaxError("Not proper token: {}".format(tree.children[0]))
+            raise RuntimeError("Not proper syntax: {}".format(tree))
 
     @classmethod
     def parse_index_type(cls, tree):
