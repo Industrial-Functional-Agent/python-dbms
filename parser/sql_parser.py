@@ -31,9 +31,11 @@ class SqlParser:
                  | TIMESTAMP ["(" NUMBER ")"]
                  | DATETIME ["(" NUMBER ")"]
                  | TEXT ["(" NUMBER ")"] [CHARACTER SET ID] [COLLATE ID]
-                 | ENUM "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
-                 | SET "(" STRING ("," STRING)* ")" [CHARACTER SET ID] [COLLATE ID]
+                 | enum [CHARACTER SET ID] [COLLATE ID]
+                 | set [CHARACTER SET ID] [COLLATE ID]
                  | JSON
+        enum: ENUM "(" STRING ("," STRING)* ")"
+        set: SET "(" STRING ("," STRING)* ")"
         reference_definition: REFERENCES ID "(" index_col_name ("," index_col_name)* ")" \
                               [ON DELETE reference_option] \
                               [ON UPDATE reference_option]

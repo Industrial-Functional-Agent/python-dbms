@@ -160,33 +160,53 @@ class DataType:
     def parse_data_type(cls, tree):
         assert tree.data == "data_type"
 
-        name = tree.children[0].type
+        name = cls.parse_name(tree.children[0])
         number = cls.parse_number(tree)
         fsp = number if name in ['TIME', 'TIMESTAMP', 'DATETIME'] else None
         length = number if name == 'TEXT' else None
         character_set = cls.parse_character_set(tree)
         collate = cls.parse_collate(tree)
-        # TODO implement values in ENUM, SET
-        # | ENUM "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
-        # | SET "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
-        values = None
+        values = cls.parse_values(tree)
 
         return DataType(name, fsp, length, character_set, collate, values)
 
     @staticmethod
+    def parse_name(child):
+        if type(child) is Token:
+            return child.type
+        elif type(child) is Tree:
+            if child.data == "enum":
+                return "ENUM"
+            elif child.data == "set":
+                return "SET"
+        raise RuntimeError("Not proper syntax: {}".format(child))
+
+    @staticmethod
     def parse_number(tree):
-        indexes = [i for i, j in enumerate(tree.children) if j.type == 'NUMBER']
+        indexes = [i for i, j in enumerate(tree.children)
+                   if type(j) is Token and j.type == 'NUMBER']
         return int(tree.children[indexes[0]].value) if len(indexes) > 0 else None
 
     @staticmethod
     def parse_character_set(tree):
-        indexes = [i for i, j in enumerate(tree.children) if j.type == "CHARACTER"]
+        indexes = [i for i, j in enumerate(tree.children)
+                   if type(j) is Token and j.type == "CHARACTER"]
         return tree.children[indexes[0] + 2].value if len(indexes) > 0 else None
 
     @staticmethod
     def parse_collate(tree):
-        indexes = [i for i, j in enumerate(tree.children) if j.type == "COLLATE"]
+        indexes = [i for i, j in enumerate(tree.children)
+                   if type(j) is Token and j.type == "COLLATE"]
         return tree.children[indexes[0] + 1].value if len(indexes) > 0 else None
+
+    @staticmethod
+    def parse_values(tree):
+        if type(tree.children[0]) is Token:
+            return None
+        elif type(tree.children[0]) is Tree:
+            if tree.children[0].data in ["enum", "set"]:
+                return [t.value.strip('\'') for t in tree.children[0].children[1:]]
+        raise RuntimeError("Not proper syntax: {}".format(tree))
 
 
 class PrimaryKey(CreateDefinition):
