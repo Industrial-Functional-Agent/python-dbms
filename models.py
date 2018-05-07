@@ -66,12 +66,12 @@ class CreateDefinition:
         else:
             raise RuntimeError("Not proper syntax: {}".format(tree))
 
-    @classmethod
-    def parse_index_type(cls, tree):
+    @staticmethod
+    def parse_index_type(tree):
         return tree.children[1].value  # btree | hash
 
-    @classmethod
-    def parse_index_col_name(cls, tree):
+    @staticmethod
+    def parse_index_col_name(tree):
         return tree.children[0].value
 
     @classmethod
