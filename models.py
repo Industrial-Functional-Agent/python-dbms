@@ -30,8 +30,8 @@ class CreateDefinition:
         FOREIGN KEY [index_name] (index_col_name,...) reference_definition
     """
 
-    @staticmethod
-    def parse_create_definition(tree):
+    @classmethod
+    def parse_create_definition(cls, tree):
         if tree.children[0].type == 'ID':
             col_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
             column_definition = next(ColumnDefinition.parse_column_definition(c)
@@ -39,30 +39,30 @@ class CreateDefinition:
                                      if type(c) is Tree and c.data == 'column_definition')
             return Column(col_name, column_definition)
         elif tree.children[0].type == 'PRIMARY':
-            index_type = next((CreateDefinition.parse_index_type(c) for c in tree.children
+            index_type = next((cls.parse_index_type(c) for c in tree.children
                               if type(c) is Tree and c.data == 'index_type'),
                               'btree')
-            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+            index_col_names = [cls.parse_index_col_name(c) for c in tree.children
                                if type(c) is Tree and c.data == 'index_col_name']
             return PrimaryKey(index_type, index_col_names)
         elif tree.children[0].type == 'UNIQUE':
             index_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
-            index_type = next((CreateDefinition.parse_index_type(c) for c in tree.children
+            index_type = next((cls.parse_index_type(c) for c in tree.children
                               if type(c) is Tree and c.data == 'index_type'),
                               'btree')
-            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+            index_col_names = [cls.parse_index_col_name(c) for c in tree.children
                                if type(c) is Tree and c.data == 'index_col_name']
             return Unique(index_name, index_type, index_col_names)
         elif tree.children[0].type == "FOREIGN":
             index_name = next((c.value for c in tree.children
                                if type(c) is Token and c.type == 'ID'),
                               None)
-            index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+            index_col_names = [cls.parse_index_col_name(c) for c in tree.children
                                if type(c) is Tree and c.data == 'index_col_name']
             reference_definition = next(c for c in tree.children
                                         if type(c) is Tree and c.data == "reference_definition")
             return ForeignKey(index_name, index_col_names,
-                              CreateDefinition.parse_reference_definition(reference_definition))
+                              cls.parse_reference_definition(reference_definition))
         else:
             raise RuntimeError("Not proper syntax: {}".format(tree))
 
@@ -77,7 +77,7 @@ class CreateDefinition:
     @classmethod
     def parse_reference_definition(cls, tree):
         tbl_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
-        index_col_names = [CreateDefinition.parse_index_col_name(c) for c in tree.children
+        index_col_names = [cls.parse_index_col_name(c) for c in tree.children
                            if type(c) is Tree and c.data == 'index_col_name']
         idx_delete = next((idx for idx, c in enumerate(tree.children)
                            if type(c) is Token and c.type == 'DELETE'),
@@ -109,15 +109,15 @@ class ColumnDefinition:
         self.default = default
         self.is_auto_increment = is_auto_increment
 
-    @staticmethod
-    def parse_column_definition(tree):
+    @classmethod
+    def parse_column_definition(cls, tree):
         assert tree.data == "column_definition"
 
         data_type = DataType.parse_data_type(tree.children[0])
         remainder = tree.children[1:]
-        allow_null = ColumnDefinition.parse_allow_null(remainder)
-        default = ColumnDefinition.parse_default(remainder)
-        is_auto_increment = ColumnDefinition.parse_is_auto_increment(remainder)
+        allow_null = cls.parse_allow_null(remainder)
+        default = cls.parse_default(remainder)
+        is_auto_increment = cls.parse_is_auto_increment(remainder)
 
         return ColumnDefinition(data_type, allow_null, default, is_auto_increment)
 
@@ -149,16 +149,16 @@ class DataType:
         self.collate = collate
         self.values = values
 
-    @staticmethod
-    def parse_data_type(tree):
+    @classmethod
+    def parse_data_type(cls, tree):
         assert tree.data == "data_type"
 
         name = tree.children[0].type
-        number = DataType.parse_number(tree)
+        number = cls.parse_number(tree)
         fsp = number if name in ['TIME', 'TIMESTAMP', 'DATETIME'] else None
         length = number if name == 'TEXT' else None
-        character_set = DataType.parse_character_set(tree)
-        collate = DataType.parse_collate(tree)
+        character_set = cls.parse_character_set(tree)
+        collate = cls.parse_collate(tree)
         # TODO implement values in ENUM, SET
         # | ENUM "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
         # | SET "(" ID ("," ID)* ")" [CHARACTER SET ID] [COLLATE ID]
