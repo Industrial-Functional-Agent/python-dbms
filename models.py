@@ -11,14 +11,14 @@ class CreateTable:
         self.tbl_name = tbl_name
         self.create_definitions = create_definitions
 
-    @classmethod
-    def parse_create_table(cls, tree):
+    @staticmethod
+    def parse_create_table(tree):
         is_if_not_exist = len([c for c in tree.children if type(c) is Token and c.type == 'IF']) > 0
         tbl_name = next(c.value for c in tree.children if type(c) is Token and c.type == 'ID')
         create_definitions = [CreateDefinition.parse_create_definition(c)
                               for c in tree.children
                               if type(c) is Tree and c.data == 'create_definition']
-        return cls(is_if_not_exist, tbl_name, create_definitions)
+        return CreateTable(is_if_not_exist, tbl_name, create_definitions)
 
 
 class CreateDefinition:
