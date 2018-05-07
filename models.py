@@ -85,11 +85,18 @@ class CreateDefinition:
         idx_update = next((idx for idx, c in enumerate(tree.children)
                            if type(c) is Token and c.type == 'UPDATE'),
                           None)
-        # TODO complete on_delete_reference_option / on_update_reference_option
         on_delete_reference_option = None
         on_update_reference_option = None
+        if idx_delete is not None:
+            on_delete_reference_option = cls.parse_reference_option(tree.children[idx_delete + 1])
+        if idx_update is not None:
+            on_update_reference_option = cls.parse_reference_option(tree.children[idx_update + 1])
         return ReferenceDefinition(tbl_name, index_col_names,
                                    on_delete_reference_option, on_update_reference_option)
+
+    @staticmethod
+    def parse_reference_option(tree):
+        return "_".join(tree.children)  # e.g. SET_NULL
 
 
 class Column(CreateDefinition):
